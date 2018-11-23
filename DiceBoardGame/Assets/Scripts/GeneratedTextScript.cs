@@ -13,14 +13,14 @@ public class GeneratedTextScript : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-        int[] result = GameData.Generated;
+        //int[] result = GameData.Generated;
 
-        if (result == null || result.Length != 2)
-        {
-            textComponent.text = "Press Generate button";
-            return;
-        }
+        //if (result == null || result.Length != 2)
+        //{
+        //    textComponent.text = "Press Generate button";
+        //    return;
+        //}
 
-        textComponent.text = result[0] + " x " + result[1];
+        //textComponent.text = result[0] + " x " + result[1];
 	}
 }

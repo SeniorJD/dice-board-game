@@ -23,7 +23,7 @@ public class AdjustmentTextScript : MonoBehaviour {
             value = MAX_VALUE;
         }
 
-        value = isWidth ? GameData.NoteWidth : GameData.NoteHeight;
+        value = isWidth ? GameData.DEFAULT_FIELD_WIDTH : GameData.DEFAULT_FIELD_HEIGHT;
     }
 
     public void Increment()

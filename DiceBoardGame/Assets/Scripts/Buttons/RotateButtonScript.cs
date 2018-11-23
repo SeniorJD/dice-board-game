@@ -6,6 +6,6 @@ public class RotateButtonScript : MonoBehaviour {
 
     public void Rotate()
     {
-        GameData.Rotate();
+        //GameData.Rotate();
     }
 }

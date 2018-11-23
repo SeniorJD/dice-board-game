@@ -12,8 +12,8 @@ public class ScoreSceneScript : MonoBehaviour, IPointerDownHandler {
     private LevelFadingChangerScript levelFadingChangerScript;
 
     void Start () {
-        int blueScore = GameData.Score[0];
-        int redScore = GameData.Score[1];
+        int blueScore = GameData.GameController.GetPlayer(0).Score;
+        int redScore = GameData.GameController.GetPlayer(1).Score;
 
         string s1;
         string s2;
@@ -22,14 +22,14 @@ public class ScoreSceneScript : MonoBehaviour, IPointerDownHandler {
         {
             s1 = "Blue player wins!";
             s2 = blueScore + ":" + redScore;
-            Color c = GameData.GetColor(0);
-            GetComponent<Image>().color = new Color(c.r, c.g, c.b, 0.5f);
+            Color c = GameData.GameController.GetPlayer(0).ColorA;
+            GetComponent<Image>().color = c;
         } else if (redScore > blueScore)
         {
             s1 = "Red player wins!";
             s2 = redScore + ":" + blueScore;
-            Color c = GameData.GetColor(1);
-            GetComponent<Image>().color = new Color(c.r, c.g, c.b, 0.5f);
+            Color c = GameData.GameController.GetPlayer(1).ColorA;
+            GetComponent<Image>().color = c;
         } else
         {
             s1 = "Equal game!";

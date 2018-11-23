@@ -18,10 +18,10 @@ public class MenuController : MonoBehaviour {
 
     void Update()
     {
-        skipButton.interactable = (GameData.Generated != null && GameData.Generated.Length > 0 && GameData.Generated[0] > 0);
+        //skipButton.interactable = GameData.GameController.GetActivePlayer().WasDiceThrown();
     }
-    public void SkipTurn()
-    {
-        script.SwitchPlayer();
-    }
+    //public void SkipTurn()
+    //{
+        //script.SwitchPlayer();
+    //}
 }

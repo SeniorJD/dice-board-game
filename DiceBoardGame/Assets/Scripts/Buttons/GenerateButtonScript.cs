@@ -12,7 +12,7 @@ public class GenerateButtonScript : MonoBehaviour {
         //x = 2;
         //y = 2;
 
-        GameData.Generated = new int[] {x, y};
+        GameData.GameController.GetActivePlayer().DiceValue = new int[] { x, y };
 
         //gameObject.SetActive(false);
     }

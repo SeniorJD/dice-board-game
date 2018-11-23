@@ -10,7 +10,7 @@ public class TempTilemapScript : MonoBehaviour {
     private Tilemap tilemap;
     private Vector3Int position;
 
-    private int[] MAX_TILES = new int[] { GameData.NoteWidth, GameData.NoteWidth };
+    //private int[] MAX_TILES = new int[] { GameData.NoteWidth, GameData.NoteWidth };
 
     public TileBase tile;
     // Use this for initialization
@@ -20,7 +20,7 @@ public class TempTilemapScript : MonoBehaviour {
 
     // Update is called once per frame
     void Update() {
-        int[] generated = GameData.Generated;
+        int[] generated = GameData.GameController.GetActivePlayer().DiceValue;
 
         if (generated == null && values == null)
         {
@@ -143,51 +143,51 @@ public class TempTilemapScript : MonoBehaviour {
 
     private Vector3Int GetAlignedPosition(Vector3Int position, int[] values, bool rotated)
     {
-        if (values == null)
-        {
-            return position;
-        }
-
-        int minX;
-        int minY;
-        int maxX;
-        int maxY;
-        if (rotated)
-        {
-            minX = values[1] / 2;
-            minY = - values[0] / 2;
-            maxX = MAX_TILES[0] - (values[1] - minX);
-            maxY = - MAX_TILES[1] - (-values[0] - minY);
-        } else
-        {
-            minX = values[0] / 2;
-            minY = - values[1] / 2;
-            maxX = MAX_TILES[0] - (values[0] - minX);
-            maxY = - MAX_TILES[1] - (- values[1] - minY);
-        }
-
-        if (position.x < minX)
-        {
-            position.x = minX;
-        } else if (position.x > maxX)
-        {
-            position.x = maxX;
-        }
-
-        Debug.Log(position.y);
-        Debug.Log(minY);
-        Debug.Log(maxY);
-        Debug.Log("----------");
-
-        if (position.y > minY)
-        {
-            position.y = minY;
-        }
-        else if (position.y < maxY)
-        {
-            position.y = maxY;
-        }
-
+        //if (values == null)
+        //{
         return position;
+        //}
+
+        //int minX;
+        //int minY;
+        //int maxX;
+        //int maxY;
+        //if (rotated)
+        //{
+        //    minX = values[1] / 2;
+        //    minY = - values[0] / 2;
+        //maxX = MAX_TILES[0] - (values[1] - minX);
+        //maxY = - MAX_TILES[1] - (-values[0] - minY);
+        //} else
+        //{
+        //minX = values[0] / 2;
+        //minY = - values[1] / 2;
+        //maxX = MAX_TILES[0] - (values[0] - minX);
+        //maxY = - MAX_TILES[1] - (- values[1] - minY);
+        //}
+
+        //if (position.x < minX)
+        //{
+        //    position.x = minX;
+        //} else if (position.x > maxX)
+        //{
+        //    position.x = maxX;
+        //}
+
+        //Debug.Log(position.y);
+        //Debug.Log(minY);
+        //Debug.Log(maxY);
+        //Debug.Log("----------");
+
+        //if (position.y > minY)
+        //{
+        //    position.y = minY;
+        //}
+        //else if (position.y < maxY)
+        //{
+        //    position.y = maxY;
+        //}
+
+        //return position;
     }
 }

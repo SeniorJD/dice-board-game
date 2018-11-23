@@ -128,12 +128,17 @@ public class GridRectangle {
         return false;
     }
 
+    public bool Contains(GridPoint point)
+    {
+        return x <= point.X && x2 > point.X && y >= point.Y && y2 < point.Y;
+    }
+
     public int GetSquare()
     {
         return points.Length;
     }
 
-    private class GridPoint
+    public class GridPoint
     {
         int x, y;
 

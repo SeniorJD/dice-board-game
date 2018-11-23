@@ -37,12 +37,14 @@ public class SkipButtonController : MonoBehaviour {
 
     // Update is called once per frame
     void Update () {
-		button.interactable = (GameData.Generated != null && GameData.Generated.Length > 0 && GameData.Generated[0] > 0);
-        button.image.sprite = GameData.CanSkipTurn() ? skipTexture : giveUpTexture;
+        Player activePlayer = GameData.GameController.GetActivePlayer();
 
-        int skipTurnCount = GameData.GetSkipTurn();
+        button.interactable = (activePlayer.WasDiceThrown());
+        button.image.sprite = activePlayer.CanSkipTurn() ? skipTexture : giveUpTexture;
 
-        bgImage.color = GameData.GetColor();
+        int skipTurnCount = activePlayer.GetSkipTurn();
+
+        bgImage.color = activePlayer.Color;
 
         if (skipTurnCount <= 0)
         {
@@ -58,15 +60,15 @@ public class SkipButtonController : MonoBehaviour {
 
     public void SkipTurn()
     {
-        if (GameData.CanSkipTurn())
+        Player activePlayer = GameData.GameController.GetActivePlayer();
+        if (activePlayer.CanSkipTurn())
         {
-            GameData.SkipTurn();
-            script.SwitchPlayer();
+            GameData.GameController.SkipTurn();
+            script.SwitchPlayer(); // TODO
         } else
         {
-            GameData.GiveUp();
-            script.SwitchPlayer();
+            GameData.GameController.GiveUp();
+            script.SwitchPlayer(); // TODO
         }
-        
     }
 }

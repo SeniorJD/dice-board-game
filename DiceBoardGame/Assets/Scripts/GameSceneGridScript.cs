@@ -25,16 +25,13 @@ public class GameSceneGridScript : MonoBehaviour {
     private Tilemap playerMovesTilemap;
     private Tilemap tempTilemap;
 
-    private int inset = 2;
-
-    private int xOffset;
-    private int yOffset;
-
     private int[] tempTilemapDiceValues = null;
     private Vector3Int tempTilemapDrawingPosition;
     private GridRectangle tempRectangle;
 
     private bool tempTilemapCanPlace = false;
+
+    private GameController gameController;
 
     private void Awake()
     {
@@ -42,8 +39,11 @@ public class GameSceneGridScript : MonoBehaviour {
         playerMovesTilemap = RetrieveTilemap("PlayerMovesTilemap");
         tempTilemap = RetrieveTilemap("TempTilemap");
 
-        xOffset = -GameData.NoteWidth / 2 - inset;
-        yOffset = GameData.NoteHeight / 2 + inset;
+        gameController = GameData.GameController;
+
+        int inset = 2;
+        int xOffset = gameController.Field.X - inset;
+        int yOffset = gameController.Field.Y + inset;
 
         for (int x = 0; x < GameData.NoteWidth + inset * 2; x++)
         {
@@ -122,11 +122,11 @@ public class GameSceneGridScript : MonoBehaviour {
 
     private void DrawTempTiles()
     {
-        int[] generated = GameData.Generated;
+        int[] generated = GameData.GameController.GetActivePlayer().DiceValue;
 
         Vector3Int currentPosition = GetCurrentPosition();
 
-        Debug.Log("CurrentPosition" + currentPosition);
+        //Debug.Log("CurrentPosition" + currentPosition);
 
         if (IsCurrentPositionOutsideField(currentPosition))
         {
@@ -135,7 +135,7 @@ public class GameSceneGridScript : MonoBehaviour {
 
         currentPosition = GetAlignedPosition(currentPosition, tempTilemapDiceValues);
 
-        Debug.Log("AlignedPosition" + currentPosition);
+        //Debug.Log("AlignedPosition" + currentPosition);
 
         if (tempTilemapDiceValues != null && generated != null && tempTilemapDiceValues.Equals(generated))
         {
@@ -184,31 +184,32 @@ public class GameSceneGridScript : MonoBehaviour {
 
     private bool IsCurrentPositionOutsideField(Vector3Int currentPosition)
     {
-        if (currentPosition.x < -GameData.NoteWidth / 2)
-        {
-            Debug.Log("exit1: " + currentPosition.x + " < " + -GameData.NoteWidth / 2);
-            return true;
-        }
+        //if (currentPosition.x < -GameData.NoteWidth / 2)
+        //{
+        //    //Debug.Log("exit1: " + currentPosition.x + " < " + -GameData.NoteWidth / 2);
+        //    return true;
+        //}
 
-        if (currentPosition.x >= GameData.NoteWidth - GameData.NoteWidth / 2)
-        {
-            Debug.Log("exit2: " + currentPosition.x + " >= " + (GameData.NoteWidth - GameData.NoteWidth / 2));
-            return true;
-        }
+        //if (currentPosition.x >= GameData.NoteWidth - GameData.NoteWidth / 2)
+        //{
+        //    //Debug.Log("exit2: " + currentPosition.x + " >= " + (GameData.NoteWidth - GameData.NoteWidth / 2));
+        //    return true;
+        //}
 
-        if (currentPosition.y > GameData.NoteHeight / 2)
-        {
-            Debug.Log("exit3: " + currentPosition.y + " > " + GameData.NoteHeight / 2);
-            return true;
-        }
+        //if (currentPosition.y > GameData.NoteHeight / 2)
+        //{
+        //    //Debug.Log("exit3: " + currentPosition.y + " > " + GameData.NoteHeight / 2);
+        //    return true;
+        //}
 
-        if (currentPosition.y <= -GameData.NoteHeight + GameData.NoteHeight / 2)
-        {
-            Debug.Log("exit4: " + currentPosition.y + " <= " + (-GameData.NoteHeight + GameData.NoteHeight / 2));
-            return true;
-        }
+        //if (currentPosition.y <= -GameData.NoteHeight + GameData.NoteHeight / 2)
+        //{
+        //    //Debug.Log("exit4: " + currentPosition.y + " <= " + (-GameData.NoteHeight + GameData.NoteHeight / 2));
+        //    return true;
+        //}
 
-        return false;
+        //return false;
+        return !gameController.Field.Contains(new GridRectangle.GridPoint(currentPosition.x, currentPosition.y));
     }
 
     private Vector3Int GetCurrentPosition()
@@ -227,16 +228,14 @@ public class GameSceneGridScript : MonoBehaviour {
             return position;
         }
 
-        int[] MAX_TILES = new int[] { GameData.NoteWidth, GameData.NoteHeight };
-
         int minX;
         int minY;
         int maxX;
         int maxY;
-        minX = -MAX_TILES[0] / 2 + values[0] / 2;
-        minY = MAX_TILES[1] / 2 - values[1] / 2;
-        maxX = MAX_TILES[0] - MAX_TILES[0] / 2 - (values[0] - values[0] / 2);
-        maxY = -MAX_TILES[1] + MAX_TILES[1] / 2 - (-values[1] + values[1] / 2);
+        minX = gameController.Field.X + values[0] / 2;
+        minY = gameController.Field.Y - values[1] / 2;
+        maxX = gameController.Field.X2 - (values[0] - values[0] / 2);
+        maxY = gameController.Field.Y2 - (-values[1] + values[1] / 2);
 
         if (position.x < minX)
         {
@@ -261,9 +260,7 @@ public class GameSceneGridScript : MonoBehaviour {
 
     private bool NoDicePending()
     {
-        int[] generated = GameData.Generated;
-
-        return generated == null || generated.Length == 0 || generated[0] == 0 || generated[1] == 0;
+        return !gameController.GetActivePlayer().WasDiceThrown();
     }
 
     private bool CanPlaceRect(GridRectangle rect)
@@ -275,7 +272,7 @@ public class GameSceneGridScript : MonoBehaviour {
 
         if (IsFirstTurn())
         {
-            if (GameData.ActivePlayer == 0)
+            if (gameController.ActivePlayerIndex == 0)
             {
                 return CanPlaceFirstRect0(rect);
             } else
@@ -299,36 +296,33 @@ public class GameSceneGridScript : MonoBehaviour {
 
     private bool IsFirstTurn()
     {
-        int activePlayer = GameData.ActivePlayer;
-
-        return GameData.PlayerMoves[activePlayer].Count == 0;
+        return gameController.GetActivePlayer().IsFirstTurn();
     }
 
     private bool CanPlaceFirstRect0(GridRectangle rect)
     {
-        int maxX = GameData.NoteWidth - GameData.NoteWidth / 2;
-        int maxY = -GameData.NoteHeight + GameData.NoteHeight / 2;
+        int maxX = gameController.Field.X2;
+        int maxY = gameController.Field.Y2;
 
         return (rect.X2 == maxX) && (rect.Y2 == maxY);
     }
 
     private bool CanPlaceFirstRect1(GridRectangle rect)
     {
-        int minX = - GameData.NoteWidth / 2;
-        int minY = GameData.NoteHeight / 2;
+        int minX = gameController.Field.X;
+        int minY = gameController.Field.Y;
 
         return (rect.X == minX) && (rect.Y == minY);
     }
 
     public void PlaceRect()
     {
-        int activePlayer = GameData.ActivePlayer;
+        Player activePlayer = gameController.GetActivePlayer();
+        activePlayer.AddPlayerMove(tempRectangle);
 
-        GameData.PlayerMoves[activePlayer].Add(tempRectangle);
+        activePlayer.ResetSkippedTurns();
 
-        GameData.ResetSkippedTurns();
-
-        GameData.Score[activePlayer] += tempRectangle.GetSquare();
+        activePlayer.Score += tempRectangle.GetSquare();
 
         DrawPlacedRect();
 
@@ -337,7 +331,7 @@ public class GameSceneGridScript : MonoBehaviour {
 
     private void DrawPlacedRect()
     {
-        TileBase tile = GameData.ActivePlayer == 0 ? blueTile : redTile;
+        TileBase tile = gameController.ActivePlayerIndex == 0 ? blueTile : redTile;
         for (int x = tempRectangle.X; x < tempRectangle.X2; x++)
         {
             for (int y = tempRectangle.Y; y > tempRectangle.Y2; y--)
@@ -351,21 +345,21 @@ public class GameSceneGridScript : MonoBehaviour {
     {
         ClearTempTiles(tempTilemapDiceValues, tempTilemapDrawingPosition == null ? new Vector3Int(0, 0, 0) : tempTilemapDrawingPosition);
 
-        GameData.NextPlayer();
-        GameData.Generated = new int[] { 0, 0 };
+        gameController.SwitchToNextPlayer();
+        //GameData.NextPlayer();
 
         tempTilemapCanPlace = false;
         tempRectangle = null;
         tempTilemapDrawingPosition = new Vector3Int();
         tempTilemapDiceValues = null;
 
-        if (GameData.GameFinished())
+        if (gameController.GameFinished())
         {
             FinishGame();
             return;
         }
 
-        if (GameData.UserGaveUp(GameData.ActivePlayer))
+        if (gameController.GetActivePlayer().GaveUp)
         {
             SwitchPlayer();
         }
@@ -378,9 +372,9 @@ public class GameSceneGridScript : MonoBehaviour {
 
     private bool Intersects(GridRectangle tempRectangle)
     {
-        foreach(List<GridRectangle> list in GameData.PlayerMoves)
+        for (int i = 0; i < gameController.GetPlayerCount(); i++)
         {
-            foreach(GridRectangle rect in list)
+            foreach (GridRectangle rect in gameController.GetPlayer(i).GetPlayerMoves())
             {
                 if (rect.Intersects(tempRectangle))
                 {
@@ -394,7 +388,7 @@ public class GameSceneGridScript : MonoBehaviour {
 
     private bool Aligns(GridRectangle tempRectangle)
     {
-        foreach (GridRectangle rect in GameData.PlayerMoves[GameData.ActivePlayer])
+        foreach (GridRectangle rect in gameController.GetActivePlayer().GetPlayerMoves())
         {
             if (rect.Aligns(tempRectangle))
             {

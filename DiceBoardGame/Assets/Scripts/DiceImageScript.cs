@@ -15,7 +15,7 @@ public class DiceImageScript : MonoBehaviour {
     }
 
     void Update () {
-        int value = GameData.Generated[diceIndex];
+        int value = GameData.GameController.GetActivePlayer().DiceValue[diceIndex];
 
         myImage.sprite = Resources.Load<Sprite>("Textures/Dice/Dice_" + value);
     }
