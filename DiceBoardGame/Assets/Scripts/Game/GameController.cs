@@ -7,15 +7,21 @@ public class GameController {
     private int activePlayerIndex;
     private GridRectangle field;
 
+    private Bot2 bot;
+
     public GameController(int playersCount, int fieldWidth, int fieldHeight)
     {
+        field = new GridRectangle(-fieldWidth / 2, fieldHeight / 2, fieldWidth, fieldHeight);
+
         players = new Player[playersCount];
         for (int i = 0; i < playersCount; i++)
         {
             players[i] = CreatePlayer(i);
+            if (players[i].IsBot)
+            {
+                bot = new Bot2(this, players[i]);
+            }
         }
-
-        field = new GridRectangle(-fieldWidth / 2, fieldHeight / 2, fieldWidth, fieldHeight);
     }
 
     private Player CreatePlayer(int index)
@@ -54,6 +60,14 @@ public class GameController {
         GetActivePlayer().GiveUp();
     }
 
+    public void ThrowDice()
+    {
+        int x = Random.Range(1, 7);
+        int y = Random.Range(1, 7);
+
+        GetActivePlayer().DiceValue = new int[] { x, y };
+    }
+
     public int ActivePlayerIndex
     {
         get
@@ -75,6 +89,14 @@ public class GameController {
         }
     }
 
+    public Bot2 Bot
+    {
+        get
+        {
+            return bot;
+        }
+    }
+
     public void SwitchToNextPlayer()
     {
         GetActivePlayer().EndTurn();
@@ -85,6 +107,13 @@ public class GameController {
         {
             activePlayerIndex = 0;
         }
+
+        //if (GetActivePlayer().IsBot)
+        //{
+        //    ThrowDice();
+
+            
+        //}
     }
 
     public bool AllUsersGaveUp()
@@ -105,15 +134,45 @@ public class GameController {
         return allUsersGaveUp;
     }
 
+    public bool OtherUsersGaveUpAndLost()
+    {
+        int nonGaveUpCount = 0;
+        int nonGaveUpScore = 0;
+        int maxScore = 0;
+        for (int i = 0; i < players.Length; i++)
+        {
+            Player player = players[i];
+
+            if (!player.GaveUp)
+            {
+                if (nonGaveUpCount > 0)
+                {
+                    return false;
+                }
+
+                nonGaveUpCount++;
+                nonGaveUpScore = player.Score;
+            } else
+            {
+                maxScore = Mathf.Max(maxScore, player.Score);
+            }
+        }
+
+        return nonGaveUpCount > 0 && nonGaveUpScore > maxScore;
+    }
+
     public bool GameFinished()
     {
+        int halfPoints = (field.GetSquare() / 2);
+        bool halfPointsPresent = false;
         int score = 0;
 
         foreach (Player player in players)
         {
+            halfPointsPresent = halfPointsPresent || (player.Score > halfPoints);
             score += player.Score;
         }
 
-        return score == field.GetSquare() || AllUsersGaveUp();
+        return halfPointsPresent || score == field.GetSquare() || AllUsersGaveUp() || OtherUsersGaveUpAndLost();
     }
 }

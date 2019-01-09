@@ -9,59 +9,55 @@ public class AdjustmentTextScript : MonoBehaviour {
     private Text textComponent;
 
     public bool isWidth;
-    private int value;
 
     private void Awake()
     {
         textComponent = gameObject.GetComponent<Text>();
-
-        if (value < MIN_VALUE)
-        {
-            value = MIN_VALUE;
-        } else if (value > MAX_VALUE)
-        {
-            value = MAX_VALUE;
-        }
-
-        value = isWidth ? GameData.DEFAULT_FIELD_WIDTH : GameData.DEFAULT_FIELD_HEIGHT;
     }
 
     public void Increment()
     {
-        if (value == MAX_VALUE)
+        if (isWidth)
         {
-            return;
-        }
-        value++;
+            if (GameData.NoteWidth >= MAX_VALUE)
+            {
+                return;
+            }
 
-        Save();
+            GameData.NoteWidth++;
+        } else
+        {
+            if (GameData.NoteHeight >= MAX_VALUE)
+            {
+                return;
+            }
+            GameData.NoteHeight++;
+        }
     }
 
     public void Decrement()
     {
-        if (value == MIN_VALUE)
-        {
-            return;
-        }
-        value--;
-
-        Save();
-    }
-
-    private void Save()
-    {
         if (isWidth)
         {
-            GameData.NoteWidth = value;
+            if (GameData.NoteWidth <= MIN_VALUE)
+            {
+                return;
+            }
+
+            GameData.NoteWidth--;
         }
         else
         {
-            GameData.NoteHeight = value;
+            if (GameData.NoteHeight <= MIN_VALUE)
+            {
+                return;
+            }
+            GameData.NoteHeight--;
         }
     }
 
     private void Update()
     {
-        textComponent.text = "" + value;
+        textComponent.text = "" + (isWidth ? GameData.NoteWidth : GameData.NoteHeight);
     }
 }

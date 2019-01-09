@@ -81,7 +81,7 @@ PlayerSettings:
   useMacAppStoreValidation: 0
   macAppStoreCategory: public.app-category.games
   gpuSkinning: 1
-  graphicsJobs: 0
+  graphicsJobs: 1
   xboxPIXTextureCapture: 0
   xboxEnableAvatar: 0
   xboxEnableKinect: 0
@@ -118,7 +118,7 @@ PlayerSettings:
     16:10: 1
     16:9: 1
     Others: 1
-  bundleVersion: 0.1
+  bundleVersion: 0.5.2
   preloadedAssets: []
   metroInputSource: 0
   wsaTransparentSwapchain: 0
@@ -154,7 +154,7 @@ PlayerSettings:
   applicationIdentifier:
     Android: com.jdone.DiceBoardGame
   buildNumber: {}
-  AndroidBundleVersionCode: 1
+  AndroidBundleVersionCode: 3
   AndroidMinSdkVersion: 16
   AndroidTargetSdkVersion: 0
   AndroidPreferredInstallLocation: 1
@@ -360,7 +360,7 @@ PlayerSettings:
     m_DynamicBatching: 0
   - m_BuildTarget: Android
     m_StaticBatching: 1
-    m_DynamicBatching: 0
+    m_DynamicBatching: 1
   - m_BuildTarget: iPhone
     m_StaticBatching: 1
     m_DynamicBatching: 0

@@ -15,10 +15,11 @@ public class Player {
 
     public Player(int playerIndex, bool isBot, Color color)
     {
+        Debug.Log("New player: " + playerIndex + ", bot: " + isBot);
         this.playerIndex = playerIndex;
         this.isBot = isBot;
         this.color = color;
-        this.colorA = new Color(color.r, color.g, color.b, 0.5f);
+        this.colorA = new Color(color.r, color.g, color.b, 0.8f);
     }
 
     public int[] DiceValue

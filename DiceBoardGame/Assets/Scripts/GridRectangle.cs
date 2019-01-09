@@ -138,6 +138,76 @@ public class GridRectangle {
         return points.Length;
     }
 
+    public override string ToString()
+    {
+        return base.ToString() + ": {" + X + ", " + Y + ", " + X2 + ", " + Y2 + "} : " + Width + "x" + Height;
+    }
+
+    public int GetTileIndexFor(int i, int j)
+    {
+        if (width == 1)
+        {
+            if (height == 1)
+            {
+                return 15;
+            }
+            if (j == y)
+            {
+                return 6;
+            }
+            if (j - 1 == y2)
+            {
+                return 9;
+            }
+            return 4;
+        }
+        if (height == 1)
+        {
+            if (i == x)
+            {
+                return 2;
+            }
+            if (i + 1 == x2)
+            {
+                return 13;
+            }
+            return 11;
+        }
+
+        if (i == x)
+        {
+            if (j == y)
+            {
+                return 5;
+            }
+            if (j - 1 == y2)
+            {
+                return 1;
+            }
+            return 3;
+        }
+        if (i + 1 == x2)
+        {
+            if (j == y)
+            {
+                return 12;
+            }
+            if (j - 1 == y2)
+            {
+                return 8;
+            }
+            return 7;
+        }
+        if (j == y)
+        {
+            return 10;
+        }
+        if (j - 1 == y2)
+        {
+            return 0;
+        }
+        return 14;
+    }
     public class GridPoint
     {
         int x, y;

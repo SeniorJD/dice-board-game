@@ -2,10 +2,16 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.Tilemaps;
 using UnityEngine.UI;
 
 public class GameSceneGridScript : MonoBehaviour {
+    private static Vector3 NULL_POSITION = new Vector3(-100500f, -100500f, -100500f);
+    private Vector3 lastMousePosition = NULL_POSITION;
+    private Vector3 defaultPosition =  new Vector3();
+    private bool pressedOverUI = false;
+    private float k = 0.05f;
 
     public TileBase whiteTile;
     public TileBase gridTile;
@@ -13,6 +19,8 @@ public class GameSceneGridScript : MonoBehaviour {
     public TileBase greenTile;
     public TileBase blueTile;
     public TileBase redTile;
+
+    private TileBase[] tileBorders;
 
     public Button rollDicesButton;
     public Button applyMoveButton;
@@ -28,6 +36,7 @@ public class GameSceneGridScript : MonoBehaviour {
     private int[] tempTilemapDiceValues = null;
     private Vector3Int tempTilemapDrawingPosition;
     private GridRectangle tempRectangle;
+    private Vector3 tempTileMapFingerPosition;
 
     private bool tempTilemapCanPlace = false;
 
@@ -41,7 +50,7 @@ public class GameSceneGridScript : MonoBehaviour {
 
         gameController = GameData.GameController;
 
-        int inset = 2;
+        int inset = 1;
         int xOffset = gameController.Field.X - inset;
         int yOffset = gameController.Field.Y + inset;
 
@@ -61,6 +70,8 @@ public class GameSceneGridScript : MonoBehaviour {
         }
 
         levelFadingChangerScript = sceneFadingChanger.GetComponent<LevelFadingChangerScript>();
+
+        tileBorders = Resources.LoadAll<TileBase>("Tiles");
     }
 
     private Tilemap RetrieveTilemap(string name)
@@ -92,10 +103,130 @@ public class GameSceneGridScript : MonoBehaviour {
 
         rollDicesButton.gameObject.SetActive(false);
 
+        if (NewDiceRolled())
+        {
+            tempTileMapFingerPosition = new Vector3(0f, 0f, 0f);
+            pressedOverUI = false;
+
+            DrawTempTiles();
+            return;
+        }
+
+        if (!pressedOverUI)
+        {
+            pressedOverUI = IsPressedOverUI(pressedOverUI);
+        }
+
         if (Input.GetMouseButton(0))
         {
-            DrawTempTiles();
+            if (pressedOverUI)
+            {
+                return;
+            }
+            ProcessMouseMoved();
         }
+        else if (Input.touchCount > 0)
+        {
+            if (pressedOverUI)
+            {
+                return;
+            }
+            ProcessFingerTouch();
+        }
+        else
+        {
+            pressedOverUI = false;
+
+            lastMousePosition = NULL_POSITION;
+        }
+    }
+
+    private bool NewDiceRolled()
+    {
+        bool wasDiceThrown = GameData.GameController.GetActivePlayer().WasDiceThrown();
+
+        return wasDiceThrown && tempTilemapDiceValues == null;
+    }
+
+    private bool IsPressedOverUI(bool currentValue)
+    {
+        foreach (Touch touch in Input.touches)
+        {
+            if (touch.phase == TouchPhase.Began && IsOverUI(touch))
+            {
+                return true;
+            }
+        }
+
+        if (Input.GetMouseButtonDown(0) && Input.touchCount == 0)
+        {
+            return EventSystem.current.IsPointerOverGameObject();
+        }
+
+        return currentValue;
+    }
+
+    public static bool IsOverUI(Touch touch)
+    {
+        PointerEventData pointerData = new PointerEventData(EventSystem.current);
+
+        pointerData.position = touch.position;
+
+        List<RaycastResult> results = new List<RaycastResult>();
+        EventSystem.current.RaycastAll(pointerData, results);
+
+        if (results.Count > 0)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    private void ProcessMouseMoved()
+    {
+        if (lastMousePosition == NULL_POSITION)
+        {
+            lastMousePosition = Input.mousePosition;
+            return;
+        }
+
+        Vector3 delta = Input.mousePosition - lastMousePosition;
+        Vector3 oldPosition = tempTileMapFingerPosition;
+        Vector3 newPosition = new Vector3(oldPosition.x + delta.x * k, oldPosition.y + delta.y * k, oldPosition.z);
+
+        newPosition.x = Mathf.Min(Mathf.Max(gameController.Field.X, newPosition.x), gameController.Field.X2);
+        newPosition.y = Mathf.Min(Mathf.Max(gameController.Field.Y2, newPosition.y), gameController.Field.Y);
+
+        //Debug.Log(gameController.Field.X + " " + gameController.Field.Y + " " + gameController.Field.X2 + " " + gameController.Field.Y2);
+
+        tempTileMapFingerPosition = newPosition;
+
+        lastMousePosition = Input.mousePosition;
+
+        DrawTempTiles();
+    }
+
+    private void ProcessFingerTouch()
+    {
+        if (Input.touchCount != 1)
+        {
+            return;
+        }
+
+        Touch touch = Input.GetTouch(0);
+
+        Vector2 delta = touch.deltaPosition;
+
+        Vector3 oldPosition = tempTileMapFingerPosition;
+        Vector3 newPosition = new Vector3(oldPosition.x + delta.x * k, oldPosition.y + delta.y * k, oldPosition.z);
+
+        newPosition.x = Mathf.Min(Mathf.Max(gameController.Field.X, newPosition.x), gameController.Field.X2);
+        newPosition.y = Mathf.Min(Mathf.Max(gameController.Field.Y2, newPosition.y), gameController.Field.Y);
+
+        tempTileMapFingerPosition = newPosition;
+
+        DrawTempTiles();
     }
 
     private void ClearTempTiles(int[] oldValues, Vector3Int oldPosition)
@@ -128,10 +259,10 @@ public class GameSceneGridScript : MonoBehaviour {
 
         //Debug.Log("CurrentPosition" + currentPosition);
 
-        if (IsCurrentPositionOutsideField(currentPosition))
-        {
-            return;
-        }
+        //if (IsCurrentPositionOutsideField(currentPosition))
+        //{
+        //    return;
+        //}
 
         currentPosition = GetAlignedPosition(currentPosition, tempTilemapDiceValues);
 
@@ -164,7 +295,7 @@ public class GameSceneGridScript : MonoBehaviour {
         }
 
         tempTilemapCanPlace = CanPlaceRect(tempRectangle);
-        TileBase tile = tempTilemapCanPlace ? greenTile : yellowTile;
+        Color color = tempTilemapCanPlace ? GameData.GREEN_COLOR : GameData.YELLOW_COLOR;
 
         for (int x = 0; x < tempTilemapDiceValues[0]; x++)
         {
@@ -176,45 +307,24 @@ public class GameSceneGridScript : MonoBehaviour {
                 vector.x += tempTilemapDrawingPosition.x;
                 vector.y += tempTilemapDrawingPosition.y;
 
+                int tileMapIndex = tempRectangle.GetTileIndexFor(vector.x, vector.y);
 
-                tempTilemap.SetTile(vector, tile);
+                tempTilemap.SetTile(vector, tileBorders[tileMapIndex]);
+                tempTilemap.SetTileFlags(vector, TileFlags.None);
+                tempTilemap.SetColor(vector, color);
+                //tempTilemap.SetTile(vector, tile);
             }
         }
     }
 
     private bool IsCurrentPositionOutsideField(Vector3Int currentPosition)
     {
-        //if (currentPosition.x < -GameData.NoteWidth / 2)
-        //{
-        //    //Debug.Log("exit1: " + currentPosition.x + " < " + -GameData.NoteWidth / 2);
-        //    return true;
-        //}
-
-        //if (currentPosition.x >= GameData.NoteWidth - GameData.NoteWidth / 2)
-        //{
-        //    //Debug.Log("exit2: " + currentPosition.x + " >= " + (GameData.NoteWidth - GameData.NoteWidth / 2));
-        //    return true;
-        //}
-
-        //if (currentPosition.y > GameData.NoteHeight / 2)
-        //{
-        //    //Debug.Log("exit3: " + currentPosition.y + " > " + GameData.NoteHeight / 2);
-        //    return true;
-        //}
-
-        //if (currentPosition.y <= -GameData.NoteHeight + GameData.NoteHeight / 2)
-        //{
-        //    //Debug.Log("exit4: " + currentPosition.y + " <= " + (-GameData.NoteHeight + GameData.NoteHeight / 2));
-        //    return true;
-        //}
-
-        //return false;
         return !gameController.Field.Contains(new GridRectangle.GridPoint(currentPosition.x, currentPosition.y));
     }
 
     private Vector3Int GetCurrentPosition()
     {
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        Ray ray = Camera.main.ScreenPointToRay(Camera.main.WorldToScreenPoint(tempTileMapFingerPosition));
         Vector3 worldPoint = ray.GetPoint(-ray.origin.z / ray.direction.z);
         Vector3Int position = tempTilemap.WorldToCell(worldPoint);
 
@@ -317,26 +427,49 @@ public class GameSceneGridScript : MonoBehaviour {
 
     public void PlaceRect()
     {
+        GridRectangle rect = tempRectangle;
+
+        PlaceRect(rect);
+    }
+
+    public void PlaceRect(GridRectangle rect)
+    {
+        if (!CanPlaceRect(rect))
+        {
+            return;
+        }
+
         Player activePlayer = gameController.GetActivePlayer();
-        activePlayer.AddPlayerMove(tempRectangle);
+        activePlayer.AddPlayerMove(rect);
 
         activePlayer.ResetSkippedTurns();
 
-        activePlayer.Score += tempRectangle.GetSquare();
+        activePlayer.Score += rect.GetSquare();
 
-        DrawPlacedRect();
+        if (gameController.Bot != null)
+        {
+            gameController.Bot.RectPlaced(rect, activePlayer.PlayerIndex);
+        }
+
+        DrawPlacedRect(rect);
 
         SwitchPlayer();
     }
 
-    private void DrawPlacedRect()
+    private void DrawPlacedRect(GridRectangle rect)
     {
         TileBase tile = gameController.ActivePlayerIndex == 0 ? blueTile : redTile;
-        for (int x = tempRectangle.X; x < tempRectangle.X2; x++)
+        for (int x = rect.X; x < rect.X2; x++)
         {
-            for (int y = tempRectangle.Y; y > tempRectangle.Y2; y--)
+            for (int y = rect.Y; y > rect.Y2; y--)
             {
-                playerMovesTilemap.SetTile(new Vector3Int(x, y, 0), tile);
+                int tileMapIndex = rect.GetTileIndexFor(x, y);
+
+                Vector3Int vector = new Vector3Int(x, y, 0);
+                playerMovesTilemap.SetTile(vector, tileBorders[tileMapIndex]);
+                playerMovesTilemap.SetTileFlags(vector, TileFlags.None);
+                playerMovesTilemap.SetColor(vector, gameController.GetActivePlayer().Color);
+                //playerMovesTilemap.SetTile(new Vector3Int(x, y, 0), tile);
             }
         }
     }
@@ -362,7 +495,25 @@ public class GameSceneGridScript : MonoBehaviour {
         if (gameController.GetActivePlayer().GaveUp)
         {
             SwitchPlayer();
+        } else
+        {
+            if (gameController.GetActivePlayer().IsBot)
+            {
+                gameController.ThrowDice();
+                StartCoroutine("BotAnalyze");
+            }
         }
+    }
+
+    IEnumerator BotAnalyze()
+    {
+        yield return null;
+        if (gameController.Bot != null)
+        {
+            gameController.Bot.Analyze(this);
+        }
+
+        yield return null;
     }
 
     private void FinishGame()

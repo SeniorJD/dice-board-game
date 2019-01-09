@@ -8,6 +8,9 @@ public class GameData {
     public static int DEFAULT_FIELD_WIDTH = 16;
     public static int DEFAULT_FIELD_HEIGHT = 32;
 
+    public static Color YELLOW_COLOR = new Color(0.97f, 1f, 0f);
+    public static Color GREEN_COLOR = new Color(0f, 1f, 0.15f);
+
     private static GameController gameController;
 
     public static void StartGame()
@@ -72,8 +75,10 @@ public class GameData {
 
     public static void Clear()
     {
-        noteWidth = 16;
-        noteHeight = 32;
-        isBotOpponent = true;
+        //noteWidth = 16;
+        //noteHeight = 32;
+        //isBotOpponent = true;
+
+        gameController = null;
     }
 }

@@ -14,6 +14,11 @@ public class LevelFadingChangerScript : MonoBehaviour {
 
     public void FadeToLevel(int levelIndex)
     {
+        if (levelIndex < 0)
+        {
+            levelIndex = 0;
+        }
+
         levelToLoad = levelIndex;
         animator.SetTrigger("FadeOut");
     }
@@ -21,5 +26,13 @@ public class LevelFadingChangerScript : MonoBehaviour {
     public void OnFadeComplete()
     {
         SceneManager.LoadScene(levelToLoad);
+    }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            FadeToLevel(SceneManager.GetActiveScene().buildIndex - 1);
+        }
     }
 }
